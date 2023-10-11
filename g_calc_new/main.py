@@ -35,14 +35,14 @@ class Main:
         distMatches = re.findall(r"\d+\(", self.equation)
         print(distMatches, " distributive num")
         for match in distMatches:
-            distMatchStr = f"{match[-2]}*{match[-1]}"
+            distMatchStr = f"{match[0:len(match) - 1]}*{match[-1]}"
             self.equation = re.sub(re.escape(match), distMatchStr, self.equation)
 
         # distributive property variable
         distMatches = re.findall(r"[a-zA-Z]+\(", self.equation)
         print(distMatches, " distributive var")
         for match in distMatches:
-            distMatchStr = f"{match[-2]}*{match[-1]}"
+            distMatchStr = f"{match[0:len(match) - 1]}*{match[-1]}"
             self.equation = re.sub(re.escape(match), distMatchStr, self.equation)
         
         # pow
