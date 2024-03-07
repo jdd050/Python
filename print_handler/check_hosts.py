@@ -1,4 +1,3 @@
-import regex
 import socket
 import subprocess
 
@@ -7,24 +6,19 @@ def get_ipv4() -> list:
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         try:
             # connect to google.com so the host machine IPv4 address can be retrieved
-            s.connect(('www.google.com', 443)) # 443 = HTTPS
+            s.connect(("www.google.com", 443)) # 443 = HTTPS
             # get the local IPv4 addr of host machine
             ipv4_addr = str(s.getsockname()[0])
         except Exception as e:
             print("Error: ", e)
-            ipv4_addr = ""
+            ipv4_addr = ''
         finally:
             s.close()
     
-    octets = regex.findall(r"[^.]+", ipv4_addr)
-    # convert each bit to a number rather than string
-    for i in range(len(octets)):
-        octets[i] = int(octets[i])
-        pass
-    
+    octets = [int(octet) for octet in ipv4_addr.split('.')]
     return octets
 
-def get_subnet_mask() -> str:
+def get_subnet_mask() -> list:
     try:
         # run ipconfig in cmd and capture output
         ip_info = subprocess.run(["ipconfig"], capture_output=True, text=True, check=True)
@@ -38,33 +32,28 @@ def get_subnet_mask() -> str:
                 result = line[22:] # subnet mask starts on char 22 (windows only)
                 break
     except Exception as e:
-        print("Error: ", e)
-        return ""
-    return result    
+        print(e)
+        return [None]
+    else:
+        octets = [int(octet) for octet in result.split('.')]
+        return octets    
 
 def lookup_host(ip_addr, subnet_mask) -> list:
     ips = []
-    # Split IP address and subnet mask into octets
-    ip_octets = ip_addr
-    subnet_octets = [int(octet) for octet in subnet_mask.split('.')]
-    
-    # Calculate network address by performing bitwise AND operation
-    network_address = [ip_octets[i] & subnet_octets[i] for i in range(4)]
+    # calculate the network address
+    network_addr = [ip_addr[i] & subnet_mask[i] for i in range(4)]
 
-    # Calculate the number of host bits by counting the number of zeros in the subnet mask
-    host_bits = 32 - sum(bin(octet).count('1') for octet in subnet_octets)
-
-    # Calculate the number of possible host addresses
-    num_hosts = 2 ** host_bits - 2  # Subtract 2 for network and broadcast addresses
-
-    # Generate all possible host addresses within the subnet
+    # calculate host bits (CIDR notation)
+    CIDR = sum(bin(octet).count('1') for octet in subnet_mask)
+    host_bits = 32 - CIDR
+    # calculate total amount of hosts
+    num_hosts = pow(2, host_bits) - 2
+    print(f"CIDR notation: {network_addr[0]}.{network_addr[1]}.{network_addr[2]}.{network_addr[3]}/{CIDR}\nTotal possible hosts: {num_hosts}")
+    # calculate all possible ips
     for i in range(1, num_hosts + 1):
-        # Calculate the next host address by incrementing the last octet of the network address
-        next_host = [(network_address[j] + (i >> (24 - 8 * j)) % 256) for j in range(4)]
-        ips.append(next_host)
-    
+        host = [network_addr[j] + (i >> ((32-host_bits)-host_bits*j)) % 256 for j in range(4)]
+        ips.append(f"{host[0]}.{host[1]}.{host[2]}.{host[3]}")
     return ips
-
 
 host_ipv4 = get_ipv4()
 subnet_mask = get_subnet_mask()
