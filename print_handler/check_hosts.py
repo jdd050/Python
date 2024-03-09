@@ -18,6 +18,7 @@ def get_ipv4() -> list:
     octets = [int(octet) for octet in ipv4_addr.split('.')]
     return octets
 
+# Determine the subnet mask of the host machine's network
 def get_subnet_mask() -> list:
     try:
         # run ipconfig in cmd and capture output
@@ -38,7 +39,8 @@ def get_subnet_mask() -> list:
         octets = [int(octet) for octet in result.split('.')]
         return octets    
 
-def lookup_host(ip_addr, subnet_mask) -> list:
+# Determine all possible hosts on the network
+def calculate_hosts(ip_addr, subnet_mask) -> list:
     ips = []
     # calculate the network address
     network_addr = [ip_addr[i] & subnet_mask[i] for i in range(4)]
@@ -55,7 +57,30 @@ def lookup_host(ip_addr, subnet_mask) -> list:
         ips.append(f"{host[0]}.{host[1]}.{host[2]}.{host[3]}")
     return ips
 
+# attempt connection with all potential hosts on the network
+# returns a list of successful connections
+
+###
+# 3/8/24 - socket is using UDP so no ack is sent back (every request is a "success")
+# consider an ICMP ping as proof of concept
+###
+def lookup_hosts(network_hosts) -> list:
+    good_connections = []
+    for host in network_hosts:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            # attempt connection to the host
+            try:
+                s.connect((host, 443))
+            except Exception as e:
+                print(f"Connection to {host} failed: {e}")
+            else:
+                good_connections.append(host)
+            finally:
+                s.close()
+    return good_connections
+
 host_ipv4 = get_ipv4()
 subnet_mask = get_subnet_mask()
-ips = lookup_host(host_ipv4, subnet_mask)
-print(f"{host_ipv4}\n{subnet_mask}\n{ips}")
+ips = calculate_hosts(host_ipv4, subnet_mask)
+good_hosts = lookup_hosts(ips)
+print(f"{host_ipv4}\n{subnet_mask}\nSuccessful connections: {len(good_hosts)}")
