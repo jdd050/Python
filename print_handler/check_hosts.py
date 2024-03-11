@@ -79,8 +79,16 @@ def lookup_hosts(network_hosts) -> list:
                 s.close()
     return good_connections
 
+def ping_hosts(network_hosts) -> list:
+    ping_results = []
+    for host in network_hosts:
+        ping_result = subprocess.run(f"ping {host} /n 1", shell=True, capture_output=True, text=True)
+        print(ping_result.stdout)
+        ping_results.append(ping_result)
+    return ping_results
+
 host_ipv4 = get_ipv4()
 subnet_mask = get_subnet_mask()
 ips = calculate_hosts(host_ipv4, subnet_mask)
-good_hosts = lookup_hosts(ips)
-print(f"{host_ipv4}\n{subnet_mask}\nSuccessful connections: {len(good_hosts)}")
+good_hosts = ping_hosts(ips)
+print(f"{host_ipv4}\n{subnet_mask}")
