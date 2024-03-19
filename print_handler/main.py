@@ -7,7 +7,21 @@ import threading
 
 # subclass of threading.Thread that allows the return value of a thread's "target" to be accessed
 class ReturnableThread(threading.Thread):
-    pass
+    def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
+        self._group = group
+        self._target = target
+        self._name = name
+        self._args = args
+        self._kwargs = kwargs
+        super().__init__(group, target, name, *args, **kwargs)
+        
+    def run(self):
+        if self._target is not None:
+            self._return_value = self._target(*self._args, **self._kwargs)
+            return self._return_value
+        else:
+            print(f"Invalid target name: {self._target}. Cannot run thread.")
+            return 1
 
 class Networking:
     def __init__(self, ip_addr=[], subnet_mask=[], test_domain='www.google.com', test_port=443):
@@ -93,13 +107,13 @@ class Main:
         # resize the window
         self.root.wm_geometry(f"{int(self.screen_size[0]/scale_factor[0])}x{int(self.screen_size[1]/scale_factor[1])}")
     
-    def scan_network(self) -> list:
-        self.port = 8080
-        return []
-    
     def create_ui(self) -> None:
         
         return None
     
+    
 if __name__ == "__main__":
-    Main().root.mainloop()
+    def hello_world():
+        print("hello world")
+        return 23
+    example = ReturnableThread(None, hello_world)
