@@ -37,15 +37,31 @@ class Main(tk.Tk):
         title.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
         ### MID-LEFT ###
         left_header = tk.Label(self.left, text="Options", font=("Helvetica bold", 13))
-        left_header.place(relx=0.5, rely=0.05, anchor="n")
+        left_header.place(relx=0.5, rely=0.1, anchor=tk.CENTER)
+        '''
+        doesnt work because .grid() doesnt want to exist (idk tbh)
+        
+        # filler for formatting
+        filler_one = tk.Label(self.left)
+        filler_one.grid(row=0, column=0)
+        # section title
+        left_header = tk.Label(self.left, text="Options", font=("Helvetica bold", 13))
+        left_header.grid(row=0, column=1)
+        # filler for formatting
+        filler_two = tk.Label(self.left)
+        filler_two.grid(row=0, column=2)
+        '''
         ### MID-RIGHT ###
-        # area where the QR code will be
-        #self.image1 = Image.open("qr_code\\qr_code.png")
-        #self.image1.resize((250, 250))
-        #self.test =  ImageTk.PhotoImage(self.image1)
-        #label1 = tk.Label(self.right, image=self.test, width=250, height=250)
-        #label1.pack(padx=0.1, pady=0.1, fill="none")
+        # the qr code
+        self.generate_qr_code()
         return None
+    
+    # placeholder for now
+    def generate_qr_code(self) -> None:
+        self.qr_code_img = Image.open(r"qr_code\granny.png")
+        self.qr_code_photo = ImageTk.PhotoImage(self.qr_code_img.resize((250, 300)))
+        label = tk.Label(self.right, image=self.qr_code_photo, width=250, height=300)
+        label.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
 
 instance = Main()
 
